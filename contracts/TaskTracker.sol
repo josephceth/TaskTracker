@@ -8,6 +8,8 @@ pragma solidity ^0.8.7;
 /// @custom:experimental This is an experimental contract.
 
 contract TaskTracker {
+    event Change(string message);
+
     struct Task {
         string project;
         string title;
@@ -60,7 +62,7 @@ contract TaskTracker {
     /// @param description The task's description
     /// @param dueDate The task's due date
     /// @param assignedUser The tasks's assigned user
-    function addToDo(
+    function addTask(
         string memory project,
         string memory title,
         string memory description,
@@ -101,7 +103,7 @@ contract TaskTracker {
     /// @notice Returns an array of Task indexes for a given project name
     /// @param projectName The Project name for the tasks
     /// @return An array of indexes from the _taskList array corresponding to the task's project name
-    function geProjectTasks(string memory projectName)
+    function getProjectTasks(string memory projectName)
         public
         view
         returns (uint256[] memory)
@@ -128,6 +130,7 @@ contract TaskTracker {
     /// @param description The task's description
     /// @param dueDate The task's due date
     /// @param assignedUser The tasks's assigned user
+    /// @dev Investigage adding payable functionality to this function, would have to increase the Task.payment value based on the original value + msg.value
     function updateTask(
         uint256 index,
         string memory project,
@@ -150,8 +153,9 @@ contract TaskTracker {
 
         //Updates the _userTasks array if the assigned user is changed from the original
         if (foundTask.assignedUser != assignedUser) {
+            emit Change("Assigned user changing");
             uint256 arrayLength = _userTasks[foundTask.assignedUser].length;
-            for (uint256 i = 0; i < arrayLength - 1; i++) {
+            for (uint256 i = 0; i <= arrayLength - 1; i++) {
                 if (_userTasks[foundTask.assignedUser][i] == index) {
                     _userTasks[foundTask.assignedUser][i] ==
                         _userTasks[foundTask.assignedUser][
@@ -164,13 +168,13 @@ contract TaskTracker {
             }
         }
 
-        //Updates the _projectTasks array if the assigned user is changed from the original
+        //Updates the _projectTasks array if the project name user is changed from the original
         if (
-            keccak256(abi.encodePacked((foundTask.project))) ==
+            keccak256(abi.encodePacked((foundTask.project))) !=
             keccak256(abi.encodePacked((project)))
         ) {
             uint256 arrayLength = _projectTasks[foundTask.project].length;
-            for (uint256 i = 0; i < arrayLength - 1; i++) {
+            for (uint256 i = 0; i <= arrayLength - 1; i++) {
                 if (_projectTasks[foundTask.project][i] == index) {
                     _projectTasks[foundTask.project][i] ==
                         _projectTasks[foundTask.project][
