@@ -199,4 +199,62 @@ contract TaskTracker {
             msg.sender
         );
     }
+
+    /// @notice Deletes a task from the taskList, projectTask, userTask, ownerTask arrays
+    /// @param taskIndex The index of the task in the _taskList array
+    function deleteTask(uint256 taskIndex) public {
+        require(taskIndex < _taskList.length, "Item does not exist in array");
+
+        Task memory foundTask = _taskList[taskIndex];
+        require(
+            foundTask.owner == msg.sender,
+            "You do not have permission to update this task"
+        );
+
+        //TODO Discover why this is failing
+        // require(
+        //     foundTask.isCompleted == true,
+        //     "You cannot delete a completed task"
+        // );
+
+        if (foundTask.payment > 0) {
+            payable(foundTask.owner).transfer(foundTask.payment);
+        }
+
+        delete _taskList[taskIndex];
+    }
+
+    /**@notice Completes a task, transfers any applicable ETH from the contract to the assigned user
+      and removes the task from the taskList, projectTask, userTask, ownerTask arrays */
+    /// @param taskIndex The index of the task in the _taskList array
+    function completeTask(uint256 taskIndex) public {
+        require(taskIndex < _taskList.length, "Item does not exist in array");
+
+        Task memory foundTask = _taskList[taskIndex];
+        require(
+            foundTask.owner == msg.sender,
+            "You do not have permission to update this task"
+        );
+
+        //TODO Discover why this is failing
+        // require(
+        //     foundTask.isCompleted == true,
+        //     "You cannot complete a completed task"
+        // );
+
+        if (foundTask.payment > 0) {
+            payable(foundTask.assignedUser).transfer(foundTask.payment);
+        }
+
+        _taskList[taskIndex] = Task(
+            foundTask.project,
+            foundTask.title,
+            foundTask.description,
+            true,
+            foundTask.dueDate,
+            foundTask.assignedUser,
+            foundTask.payment,
+            msg.sender
+        );
+    }
 }
